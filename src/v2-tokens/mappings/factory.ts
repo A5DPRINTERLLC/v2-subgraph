@@ -1,15 +1,18 @@
 /* eslint-disable prefer-const */
 import { BigInt, log } from '@graphprotocol/graph-ts'
-
 import { PairCreated } from '../../../generated/Factory/Factory'
 import { Bundle, Pair, PairTokenLookup, Token, UniswapFactory } from '../../../generated/schema'
 import { Pair as PairTemplate } from '../../../generated/templates'
 import { FACTORY_ADDRESS } from '../../common/chain'
 import { ZERO_BD, ZERO_BI } from '../../common/constants'
-import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../../common/helpers'
+import {
+  fetchTokenDecimals,
+  fetchTokenName,
+  fetchTokenSymbol,
+  fetchTokenTotalSupply
+} from '../../common/helpers'
 
 export function handleNewPair(event: PairCreated): void {
-  // load factory (create if first exchange)
   let factory = UniswapFactory.load(FACTORY_ADDRESS)
   if (!factory) {
     factory = new UniswapFactory(FACTORY_ADDRESS)
@@ -21,7 +24,6 @@ export function handleNewPair(event: PairCreated): void {
     factory.totalLiquidityUSD = ZERO_BD
     factory.txCount = ZERO_BI
 
-    // create new bundle
     let bundle = new Bundle('1')
     bundle.ethPrice = ZERO_BD
     bundle.save()
@@ -29,11 +31,8 @@ export function handleNewPair(event: PairCreated): void {
   factory.pairCount = factory.pairCount + 1
   factory.save()
 
-  // create the tokens
+  // token0
   let token0 = Token.load(event.params.token0.toHexString())
-  let token1 = Token.load(event.params.token1.toHexString())
-
-  // fetch info if null
   if (!token0) {
     token0 = new Token(event.params.token0.toHexString())
     token0.symbol = fetchTokenSymbol(event.params.token0)
@@ -41,29 +40,25 @@ export function handleNewPair(event: PairCreated): void {
     token0.totalSupply = fetchTokenTotalSupply(event.params.token0)
     let decimals = fetchTokenDecimals(event.params.token0)
 
-    // bail if we couldn't figure out the decimals
-    if (!decimals) {
-      log.debug('mybug the decimal on token 0 was null', [])
+    if (decimals.equals(ZERO_BI)) {
+      log.debug('Could not fetch decimals for token0 => skipping pair', [])
       return
     }
-
     token0.decimals = decimals
     token0.derivedETH = ZERO_BD
     token0.tradeVolume = ZERO_BD
     token0.tradeVolumeUSD = ZERO_BD
     token0.untrackedVolumeUSD = ZERO_BD
     token0.totalLiquidity = ZERO_BD
-    token0.lastMinuteArchived = BigInt.fromI32(0)
-    token0.lastHourArchived = BigInt.fromI32(0)
-    token0.lastMinuteRecorded = BigInt.fromI32(0)
-    token0.lastHourRecorded = BigInt.fromI32(0)
-    token0.minuteArray = []
-    token0.hourArray = []
-    // token0.allPairs = []
+
+    // REMOVE the lines with lastMinuteArchived, minuteArray, etc.
+
     token0.txCount = ZERO_BI
+    token0.save()
   }
 
-  // fetch info if null
+  // token1
+  let token1 = Token.load(event.params.token1.toHexString())
   if (!token1) {
     token1 = new Token(event.params.token1.toHexString())
     token1.symbol = fetchTokenSymbol(event.params.token1)
@@ -71,8 +66,8 @@ export function handleNewPair(event: PairCreated): void {
     token1.totalSupply = fetchTokenTotalSupply(event.params.token1)
     let decimals = fetchTokenDecimals(event.params.token1)
 
-    // bail if we couldn't figure out the decimals
-    if (!decimals) {
+    if (decimals.equals(ZERO_BI)) {
+      log.debug('Could not fetch decimals for token1 => skipping pair', [])
       return
     }
     token1.decimals = decimals
@@ -81,17 +76,14 @@ export function handleNewPair(event: PairCreated): void {
     token1.tradeVolumeUSD = ZERO_BD
     token1.untrackedVolumeUSD = ZERO_BD
     token1.totalLiquidity = ZERO_BD
-    token1.lastMinuteArchived = BigInt.fromI32(0)
-    token1.lastHourArchived = BigInt.fromI32(0)
-    token1.lastMinuteRecorded = BigInt.fromI32(0)
-    token1.lastHourRecorded = BigInt.fromI32(0)
-    token1.minuteArray = []
-    token1.hourArray = []
-    // token1.allPairs = []
+
+    // REMOVE the lines with lastHourArchived, hourArray, etc.
+
     token1.txCount = ZERO_BI
+    token1.save()
   }
 
-  let pair = new Pair(event.params.pair.toHexString()) as Pair
+  let pair = new Pair(event.params.pair.toHexString())
   pair.token0 = token0.id
   pair.token1 = token1.id
   pair.liquidityProviderCount = ZERO_BI
@@ -110,25 +102,27 @@ export function handleNewPair(event: PairCreated): void {
   pair.untrackedVolumeUSD = ZERO_BD
   pair.token0Price = ZERO_BD
   pair.token1Price = ZERO_BD
-  token0.save()
-  token1.save()
   pair.save()
+
   factory.save()
 
   let pairLookup0 = new PairTokenLookup(
-    event.params.token0.toHexString().concat('-').concat(event.params.token1.toHexString())
+    event.params.token0
+      .toHexString()
+      .concat('-')
+      .concat(event.params.token1.toHexString())
   )
   pairLookup0.pair = pair.id
   pairLookup0.save()
 
   let pairLookup1 = new PairTokenLookup(
-    event.params.token1.toHexString().concat('-').concat(event.params.token0.toHexString())
+    event.params.token1
+      .toHexString()
+      .concat('-')
+      .concat(event.params.token0.toHexString())
   )
   pairLookup1.pair = pair.id
   pairLookup1.save()
 
-  // create the tracked contract based on the template
   PairTemplate.create(event.params.pair)
-
-  // save updated values
 }
