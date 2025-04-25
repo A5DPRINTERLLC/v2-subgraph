@@ -11,7 +11,7 @@ services:
     environment:
       ethereum: mainnet:${ETHEREUM_MAINNET}
       ipfs: "http://localhost:5001"
-      postgres_host: postgres
+      postgres_host: localhost
       postgres_user: graph
       postgres_pass: letmein
       postgres_db: graph
