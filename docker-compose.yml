@@ -2,12 +2,7 @@ services:
   graph-node:
     image: graphprotocol/graph-node
     platform: linux/amd64
-    ports:
-      - "8000:8000"
-      - "8001:8001"
-      - "8020:8020"
-      - "8030:8030"
-      - "8040:8040"
+    network_mode: host
     depends_on:
       - ipfs
       - postgres
@@ -20,7 +15,7 @@ services:
       postgres_user: graph
       postgres_pass: letmein
       postgres_db: graph
-      GRAPH_LOG: info
+      GRAPH_LOG: debug
 
   ipfs:
     image: ipfs/go-ipfs:v0.15.0
