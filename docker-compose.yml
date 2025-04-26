@@ -16,6 +16,7 @@ services:
       --ipfs http://ipfs:5001
       --ethereum-rpc mainnet:${ETHEREUM_MAINNET}
       --postgres-url postgresql://graph:letmein@postgres:5432/graph
+      --node-id graph-node-1
       --debug
     environment:
       GRAPH_LOG: trace
