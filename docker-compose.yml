@@ -11,15 +11,17 @@ services:
     depends_on:
       - ipfs
       - postgres
-    env_file:
-      - .env
+    command:
+      [
+        "--ipfs",
+        "http://ipfs:5001",
+        "--ethereum",
+        "mainnet:${ETHEREUM_MAINNET}",
+        "--postgres-url",
+        "postgresql://graph:letmein@postgres:5432/graph",
+        "--debug"
+      ]
     environment:
-      ETHEREUM_RPC: mainnet:${ETHEREUM_MAINNET}   # FIXED
-      IPFS: "http://ipfs:5001"
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: graph
-      POSTGRES_PASS: letmein
-      POSTGRES_DB: graph
       GRAPH_LOG: trace
       RUST_BACKTRACE: full
 
