@@ -11,16 +11,12 @@ services:
     depends_on:
       - ipfs
       - postgres
-    command:
-      [
-        "--ipfs",
-        "http://ipfs:5001",
-        "--ethereum",
-        "mainnet:${ETHEREUM_MAINNET}",
-        "--postgres-url",
-        "postgresql://graph:letmein@postgres:5432/graph",
-        "--debug"
-      ]
+    command: >
+      graph-node
+      --ipfs http://ipfs:5001
+      --ethereum mainnet:${ETHEREUM_MAINNET}
+      --postgres-url postgresql://graph:letmein@postgres:5432/graph
+      --debug
     environment:
       GRAPH_LOG: trace
       RUST_BACKTRACE: full
