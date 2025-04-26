@@ -3,23 +3,23 @@ services:
     image: graphprotocol/graph-node
     platform: linux/amd64
     ports:
-      - "8000:8000"  # Subgraph query playground
-      - "8001:8001"  # Status server
-      - "8020:8020"  # Admin JSON-RPC
-      - "8030:8030"  # Index node server
-      - "8040:8040"  # Metrics server
+      - "8000:8000"
+      - "8001:8001"
+      - "8020:8020"
+      - "8030:8030"
+      - "8040:8040"
     depends_on:
       - ipfs
       - postgres
     env_file:
       - .env
     environment:
-      ethereum: mainnet:${ETHEREUM_MAINNET}
-      ipfs: "http://ipfs:5001"
-      postgres_host: postgres
-      postgres_user: graph
-      postgres_pass: letmein
-      postgres_db: graph
+      ETHEREUM_RPC: mainnet:${ETHEREUM_MAINNET}   # FIXED
+      IPFS: "http://ipfs:5001"
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: graph
+      POSTGRES_PASS: letmein
+      POSTGRES_DB: graph
       GRAPH_LOG: trace
       RUST_BACKTRACE: full
 
