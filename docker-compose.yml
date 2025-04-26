@@ -2,7 +2,12 @@ services:
   graph-node:
     image: graphprotocol/graph-node
     platform: linux/amd64
-    network_mode: host
+    ports:
+      - "8000:8000"  # Subgraph query playground
+      - "8001:8001"  # Status server
+      - "8020:8020"  # Admin JSON-RPC
+      - "8030:8030"  # Index node server
+      - "8040:8040"  # Metrics server
     depends_on:
       - ipfs
       - postgres
@@ -10,8 +15,8 @@ services:
       - .env
     environment:
       ethereum: mainnet:${ETHEREUM_MAINNET}
-      ipfs: "http://localhost:5001"
-      postgres_host: localhost
+      ipfs: "http://ipfs:5001"
+      postgres_host: postgres
       postgres_user: graph
       postgres_pass: letmein
       postgres_db: graph
