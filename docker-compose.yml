@@ -13,6 +13,7 @@ services:
       - postgres
     command: >
       graph-node
+      --config /dev/null
       --ipfs http://ipfs:5001
       --ethereum-rpc mainnet:${ETHEREUM_MAINNET}
       --postgres-url postgresql://graph:letmein@postgres:5432/graph
@@ -21,6 +22,30 @@ services:
     environment:
       GRAPH_LOG: trace
       RUST_BACKTRACE: full
+
+  ipfs:
+    image: ipfs/go-ipfs:v0.15.0
+    platform: linux/amd64
+    ports:
+      - "5001:5001"
+    volumes:
+      - ipfs_data:/data/ipfs
+
+  postgres:
+    image: postgres:14
+    platform: linux/amd64
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
+  ipfs_data:
 
   ipfs:
     image: ipfs/go-ipfs:v0.15.0
