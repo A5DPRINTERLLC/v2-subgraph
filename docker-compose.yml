@@ -1,48 +1,96 @@
-services:
-  graph-node:
-    image: graphprotocol/graph-node
-    platform: linux/amd64
-    ports:
-      - "8000:8000"  # Subgraph query playground
-      - "8001:8001"  # Status server
-      - "8020:8020"  # Admin JSON-RPC
-      - "8030:8030"  # Index node server
-      - "8040:8040"  # Metrics server
-    depends_on:
-      - ipfs
-      - postgres
-    env_file:
-      - .env
-    environment:
-      ethereum: mainnet:${ETHEREUM_MAINNET}
-      ipfs: "http://ipfs:5001"
-      postgres_host: postgres
-      postgres_user: graph
-      postgres_pass: letmein
-      postgres_db: graph
-      GRAPH_LOG: trace
-      RUST_BACKTRACE: full
+version: "3.8"
 
+services:
+  # --- Geth (Execution Client) ---
+  # geth:
+  #   image: ethereum/client-go:v1.15.8
+  #   container_name: geth
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8545:8545"
+  #     - "8546:8546"
+  #   volumes:
+  #     - geth_data:/root/.ethereum
+  #   command:
+  #     [
+  #       "--syncmode", "snap",
+  #       "--http", "--http.addr", "0.0.0.0", "--http.port", "8545",
+  #       "--http.api", "eth,net,web3,admin",
+  #       "--ws", "--ws.addr", "0.0.0.0", "--ws.port", "8546",
+  #       "--ws.api", "eth,net,web3,admin",
+  #       "--authrpc.addr", "0.0.0.0",
+  #       "--authrpc.vhosts", "*",
+  #       "--ws.origins", "*",
+  #       "--http.corsdomain", "*",
+  #       "--datadir", "/root/.ethereum",
+  #       "--ipcdisable"
+  #     ]
+
+  # --- Lighthouse (Consensus Client) ---
+  # lighthouse:
+  #   image: sigp/lighthouse:latest
+  #   container_name: lighthouse
+  #   restart: unless-stopped
+  #   command:
+  #     lighthouse bn
+  #     --network mainnet
+  #     --execution-endpoint http://geth:8551
+  #     --checkpoint-sync-url https://beaconstate.ethstaker.cc
+  #     --http
+  #     --http-address 0.0.0.0
+  #     --http-port 5052
+  #     --execution-jwt /root/.ethereum/geth/jwtsecret
+
+  # --- IPFS (Decentralized Storage) ---
   ipfs:
-    image: ipfs/go-ipfs:v0.15.0
-    platform: linux/amd64
+    image: ipfs/go-ipfs:v0.10.0
+    container_name: ipfs
+    restart: unless-stopped
     ports:
       - "5001:5001"
+      - "8080:8080"
     volumes:
       - ipfs_data:/data/ipfs
 
+  # --- Postgres (Graph Node Database) ---
   postgres:
-    image: postgres:14
-    platform: linux/amd64
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: graph
+      POSTGRES_PASSWORD: letmein
+      POSTGRES_DB: graph
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
+  # --- Graph Node (Subgraph Indexer) ---
+  graph-node:
+    image: graphprotocol/graph-node
+    container_name: graph-node
+    depends_on:
+      - ipfs
+      - postgres
+      # - geth
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8020:8020"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      postgres_host: postgres
+      postgres_port: 5432
+      postgres_user: graph
+      postgres_pass: letmein
+      postgres_db: graph
+      ipfs: http://ipfs:5001
+      ethereum: mainnet:http://geth:8545
+      GRAPH_LOG: info
+    restart: unless-stopped
 
 volumes:
-  pgdata:
+  postgres_data:
   ipfs_data:
+  geth_data:
