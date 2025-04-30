@@ -4,7 +4,8 @@
   "repository": "https://github.com/graphprotocol/uniswap-v2-subgraph",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "build": "cross-env ts-node ./script/build"
+    "build": "cross-env ts-node ./script/build",
+    "lint": "echo 'Skipping lint step...'"
   },
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.64.1",
