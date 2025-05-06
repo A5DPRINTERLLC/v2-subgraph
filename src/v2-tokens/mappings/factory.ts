@@ -72,13 +72,6 @@ export function handleNewPair(event: PairCreated): void {
       token0.decimals = decimals0Result.value
     }
 
-      // OR APPROACH B: Provide a fallback, e.g. 18
-      // token0.decimals = 18
-      // log.debug('Could not fetch decimals for token0 => defaulting to 18', [])
-    } else {
-      token0.decimals = decimals0Result.value
-    }
-
     token0.totalSupply = BigInt.zero()
     token0.derivedETH = ZERO_BD
     token0.tradeVolume = ZERO_BD
