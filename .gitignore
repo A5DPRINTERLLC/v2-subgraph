@@ -8,7 +8,7 @@ generated
 yarn.lock
 package-lock.json
 .vscode
-.env
+# .env
 /.subgraph-env
 subgraph.yaml
 /src/common/chain.ts
