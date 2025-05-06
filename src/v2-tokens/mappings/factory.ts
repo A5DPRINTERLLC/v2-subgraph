@@ -65,9 +65,12 @@ export function handleNewPair(event: PairCreated): void {
     // Decimals
     let decimals0Result = token0Contract.try_decimals()
     if (decimals0Result.reverted) {
-      // APPROACH A: Return early so we skip creating the pair at all
-      log.debug('Could not fetch decimals for token0 => skipping pair', [])
-      return
+      // Fallback to 18 if decimals call fails
+      log.debug('Could not fetch decimals for token0 => defaulting to 18', [])
+      token0.decimals = 18
+    } else {
+      token0.decimals = decimals0Result.value
+    }
 
       // OR APPROACH B: Provide a fallback, e.g. 18
       // token0.decimals = 18
@@ -110,9 +113,12 @@ export function handleNewPair(event: PairCreated): void {
     // Decimals
     let decimals1Result = token1Contract.try_decimals()
     if (decimals1Result.reverted) {
-      // APPROACH A: Return early
-      log.debug('Could not fetch decimals for token1 => skipping pair', [])
-      return
+      // Fallback to 18 if decimals call fails
+      log.debug('Could not fetch decimals for token1 => defaulting to 18', [])
+      token1.decimals = 18
+    } else {
+      token1.decimals = decimals1Result.value
+    }
 
       // OR APPROACH B: Provide a fallback
       // token1.decimals = 18
