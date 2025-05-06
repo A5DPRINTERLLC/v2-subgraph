@@ -113,7 +113,6 @@ export function handleNewPair(event: PairCreated): void {
       token1.decimals = decimals1Result.value
     }
 
-
     token1.totalSupply = BigInt.zero()
     token1.derivedETH = ZERO_BD
     token1.tradeVolume = ZERO_BD
